@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mutate
+  name: mutate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mutate
+  template:
+    metadata:
+      labels:
+        app: mutate
+    spec:
+      volumes:
+        - name: mutate
+          secret:
+            secretName: mutate
+      containers:
+      - image: test-admission.io:latest
+        imagePullPolicy: IfNotPresent
+        name: mutate
+        volumeMounts:
+          - mountPath: /ssl
+            name: mutate
+        resources:
+          requests:
+            cpu: "1"
+            memory: 500Mi
+          limits:
+            cpu: "1"
+            memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mutate
+spec:
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    app: mutate
